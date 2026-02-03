@@ -10,5 +10,7 @@ func InitializeRouter() *gin.Engine {
 
 	router.GET("/health", handlers.Health)
 
+	handlers.MetricsHandler(router)
+
 	return router
 }
