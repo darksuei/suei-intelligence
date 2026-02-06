@@ -28,6 +28,12 @@ func InitializeRouter() *gin.Engine {
 	router.POST("/mfa/totp-uri", handlers.RetrieveTotpURI)
 	router.POST("/mfa/confirm", handlers.ConfirmMFA)
 
+	// Auth
+	router.POST("/auth/login", handlers.Login)
+	router.POST("/auth/mfa", handlers.MFA)
+	router.POST("/auth/refresh-token", handlers.RefreshToken)
+	router.POST("/auth/revoke-token", handlers.RevokeToken)
+
 	// Metrics
 	handlers.MetricsHandler(router)
 

@@ -1,0 +1,121 @@
+package auth
+
+import (
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/darksuei/suei-intelligence/internal/application/account"
+	"github.com/darksuei/suei-intelligence/internal/config"
+	"github.com/darksuei/suei-intelligence/internal/domain/auth"
+	"github.com/darksuei/suei-intelligence/internal/infrastructure/cache"
+)
+
+func Login(email string, password string, commonCfg *config.CommonConfig, databaseCfg *config.DatabaseConfig) (*auth.LoginDTO, error) {
+	_account, err := account.RetrieveAccountWithPassword(email, password, databaseCfg)
+
+	if err != nil || _account == nil {
+		return nil, errors.New("Invalid email or password")
+	}
+
+	accessToken, err := auth.GenerateJWT(auth.JWTParams{
+		Subject:   _account.ID,
+		Email:     _account.Email,
+		TTL:       time.Hour,
+		SecretKey: []byte(commonCfg.JWTSecret),
+	})
+	
+	if err != nil {
+		return nil, err
+	}
+
+	refreshToken, refreshTokenHash, err := auth.GenerateRefreshToken()
+
+	err = cache.GetCache().Set(fmt.Sprintf("refresh-token-%s", refreshTokenHash), email, 7*24*time.Hour)
+
+	if err != nil {
+		return nil, errors.New("Failed to rotate refresh token")
+	}
+
+	return &auth.LoginDTO{
+		AccessToken: accessToken,
+		RefreshToken: refreshToken,
+	}, nil
+}
+
+func LoginWithoutPassword(email string, commonCfg *config.CommonConfig, databaseCfg *config.DatabaseConfig) (*auth.LoginDTO, error) {
+	_account, err := account.RetrieveAccount(email, databaseCfg)
+
+	if err != nil || _account == nil {
+		return nil, errors.New("Invalid email or password")
+	}
+
+	accessToken, err := auth.GenerateJWT(auth.JWTParams{
+		Subject:   _account.ID,
+		Email:     _account.Email,
+		TTL:       time.Hour,
+		SecretKey: []byte(commonCfg.JWTSecret),
+	})
+	
+	if err != nil {
+		return nil, err
+	}
+
+	refreshToken, refreshTokenHash, err := auth.GenerateRefreshToken()
+
+	err = cache.GetCache().Set(fmt.Sprintf("refresh-token-%s", refreshTokenHash), email, 7*24*time.Hour)
+
+	if err != nil {
+		return nil, errors.New("Failed to rotate refresh token")
+	}
+	
+	return &auth.LoginDTO{
+		AccessToken: accessToken,
+		RefreshToken: refreshToken,
+	}, nil
+}
+
+func Refresh(rawRefresh string, commonCfg *config.CommonConfig, databaseCfg *config.DatabaseConfig) (*auth.LoginDTO, error) {
+	// 1. Get refresh token from repository
+	oldRefreshTokenKey := fmt.Sprintf("refresh-token-%s", auth.HashRefreshToken(rawRefresh))
+	email, err := cache.GetCache().Get(oldRefreshTokenKey)
+
+	if err != nil {
+		return nil, errors.New("Invalid refresh token")
+	}
+
+	// 2. Get account
+	_account, err := account.RetrieveAccount(email, databaseCfg)
+
+	if err != nil {
+		return nil, errors.New("Invalid account")
+	}
+	
+	// 3. Issue new access token
+	accessToken, _ := auth.GenerateJWT(auth.JWTParams{
+		Subject:   _account.ID,
+		Email:     _account.Email,
+		TTL:       time.Hour,
+		SecretKey: []byte(commonCfg.JWTSecret),
+	})
+
+	// 4. Rotate refresh token
+	newRaw, newHash, _ := auth.GenerateRefreshToken()
+
+	err = cache.GetCache().Delete(oldRefreshTokenKey)
+
+	if err != nil {
+		return nil, errors.New("Failed to revoke refresh token")
+	}
+	
+	err = cache.GetCache().Set(fmt.Sprintf("refresh-token-%s", newHash), email, 7*24*time.Hour)
+
+	if err != nil {
+		return nil, errors.New("Failed to rotate refresh token")
+	}
+
+	return &auth.LoginDTO{
+		AccessToken:  accessToken,
+		RefreshToken: newRaw,
+	}, nil
+}
