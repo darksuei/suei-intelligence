@@ -60,7 +60,7 @@ func Migrate() {
 		log.Fatalf("failed to migrate sqlite database (project): %v", err)
 	}
 
-	err = DB.AutoMigrate(&datasource.DataSource{})
+	err = DB.AutoMigrate(&datasource.Datasource{})
 	if err != nil {
 		log.Fatalf("failed to migrate sqlite database (datasource): %v", err)
 	}

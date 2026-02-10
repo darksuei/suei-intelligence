@@ -15,5 +15,5 @@ type Project struct {
 	Stage           ProjectStage             `gorm:"type:text;not null"`
 	BusinessDomain  ProjectBusinessDomain    `gorm:"type:text;not null"`
 	CreatedBy       map[string]string 		 `gorm:"type:jsonb;serializer:json;default:'{}'"`
-	DataSources     []datasource.DataSource  `gorm:"foreignKey:ProjectID"`
+	DataSources     []datasource.Datasource  `gorm:"foreignKey:ProjectID"`
 }

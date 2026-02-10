@@ -41,6 +41,11 @@ func InitializeRouter() *gin.Engine {
 	router.PUT("/project/:key", middleware.AuthMiddleware(), handlers.UpdateProject)
 	router.GET("/projects", middleware.AuthMiddleware(), handlers.RetrieveProjects)
 
+	// Datasource
+	router.POST("/project/:key/datasource", middleware.AuthMiddleware(), handlers.NewDatasource)
+	router.GET("/project/:key/datasources", middleware.AuthMiddleware(), handlers.RetrieveDatasources)
+	router.DELETE("/project/:key/datasource/:id", middleware.AuthMiddleware(), handlers.DeleteDatasource)
+
 	// Metrics
 	handlers.MetricsHandler(router)
 

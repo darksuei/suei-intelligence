@@ -151,7 +151,6 @@ func RetrieveProjects(c *gin.Context) {
 	})
 }
 
-
 func UpdateProject(c *gin.Context) {
 	key := c.Param("key") // assumes route is like /projects/:key
 	if key == "" {
