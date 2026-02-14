@@ -14,6 +14,7 @@ import (
 	"github.com/darksuei/suei-intelligence/internal/config"
 	authenticationDomain "github.com/darksuei/suei-intelligence/internal/domain/authentication"
 	"github.com/darksuei/suei-intelligence/internal/infrastructure/cache"
+	"github.com/darksuei/suei-intelligence/internal/infrastructure/server/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/kelseyhightower/envconfig"
@@ -28,7 +29,8 @@ func Login(c *gin.Context) {
 
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"error": "Invalid request: Missing required fields.",
+			"message": "Validation failed.",
+			"errors": utils.FormatValidationErrors(err),
 		})
 		return
 	}
@@ -75,7 +77,8 @@ func MFA(c *gin.Context) {
 
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"error": "Invalid request: Missing required fields.",
+			"message": "Validation failed.",
+			"errors": utils.FormatValidationErrors(err),
 		})
 		return
 	}
@@ -164,7 +167,8 @@ func RevokeToken(c *gin.Context) {
 
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "refresh_token is required",
+			"message": "Validation failed.",
+			"errors": utils.FormatValidationErrors(err),
 		})
 		return
 	}
@@ -191,7 +195,8 @@ func RefreshToken(c *gin.Context) {
 
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "refresh_token is required",
+			"message": "Validation failed.",
+			"errors": utils.FormatValidationErrors(err),
 		})
 		return
 	}

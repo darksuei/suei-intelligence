@@ -27,12 +27,13 @@ func SupportedDatasources(c *gin.Context) {
 func NewDatasource(c *gin.Context) {
 	var req struct {
 		SourceType string `json:"sourceType" binding:"required"`
-		Connection interface{} `json:"connection" binding:"required"`
+		Configuration map[string]interface{} `json:"configuration" binding:"required"`
 	}
 
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"error": "Invalid request: Missing required fields.",
+			"message": "Validation failed.",
+			"errors": utils.FormatValidationErrors(err),
 		})
 		return
 	}
@@ -55,9 +56,20 @@ func NewDatasource(c *gin.Context) {
 		return
 	}
 
-	// Validate datasource
-	// - sourceType must be supported
-	// - connection params must be complete and valid
+	errs, err := datasourceDomain.ValidateInput(req.SourceType, req.Configuration)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	if errs != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"message": "Validation failed.",
+			"errors":  errs,
+		})
+		return
+	}
 
 	var databaseCfg config.DatabaseConfig
 	if err := envconfig.Process("", &databaseCfg); err != nil {
@@ -77,7 +89,7 @@ func NewDatasource(c *gin.Context) {
 	}
 
 	// Create datasource
-	_datasource, err = datasourceService.NewDatasource(key, *createdByEmail, &databaseCfg)
+	_datasource, err = datasourceService.NewDatasource(key, req.SourceType, *createdByEmail, &databaseCfg)
 
 	datasourceID = _datasource.ID
 
@@ -89,11 +101,14 @@ func NewDatasource(c *gin.Context) {
 		return
 	}
 
-	err = etl.GetInstance().CreateSourceConnection(strconv.FormatUint(uint64(datasourceID), 10), req.Connection)
+	configuration := req.Configuration
+	configuration["sourceType"] = req.SourceType
+
+	err = etl.GetInstance().CreateSourceConnection(strconv.FormatUint(uint64(datasourceID), 10), configuration)
 
 	if err != nil {
 		// Rollback CREATED Datasource
-		err = datasourceService.HardDeleteDatasource(uint(datasourceID), key, &databaseCfg)
+		datasourceService.HardDeleteDatasource(uint(datasourceID), key, &databaseCfg)
 
 		log.Printf("Error creating datasource: %v", err)
 

@@ -8,5 +8,5 @@ const (
 
 // Cache defines the minimal cache operations
 type ETL interface {
-	CreateSourceConnection(name string, configuration interface {}) error
+	CreateSourceConnection(name string, configuration map[string]interface{}) error
 }

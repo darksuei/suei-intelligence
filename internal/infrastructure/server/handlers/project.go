@@ -25,7 +25,8 @@ func NewProject(c *gin.Context) {
 
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"error": "Invalid request: Missing required fields.",
+			"message": "Validation failed.",
+			"errors": utils.FormatValidationErrors(err),
 		})
 		return
 	}

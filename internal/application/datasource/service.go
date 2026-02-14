@@ -10,7 +10,7 @@ import (
 	"github.com/darksuei/suei-intelligence/internal/infrastructure/database"
 )
 
-func NewDatasource(key string, createdByEmail string, cfg *config.DatabaseConfig) (*datasource.Datasource, error) {
+func NewDatasource(key string, sourceType string, createdByEmail string, cfg *config.DatabaseConfig) (*datasource.Datasource, error) {
 	_datasourceRepository := database.NewDatasourceRepository(cfg)
 
 	createdByAccount, err := account.RetrieveAccount(createdByEmail, cfg)
@@ -31,6 +31,7 @@ func NewDatasource(key string, createdByEmail string, cfg *config.DatabaseConfig
 	}
 
 	_datasource := &datasource.Datasource{
+		SourceType: sourceType,
 		ProjectID: _project.ID,
 		CreatedBy: createdBy,
 	}

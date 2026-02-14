@@ -82,7 +82,7 @@ func Initialize(c *config.AirbyteConfig) domain.ETL {
 	}
 }
 
-func (c *AirbyteContext) CreateSourceConnection(name string, configuration interface{}) error {
+func (c *AirbyteContext) CreateSourceConnection(name string, configuration map[string]interface{}) error {
 	token, err := retrieveAccessToken(c.cfg)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve access token: %w", err)

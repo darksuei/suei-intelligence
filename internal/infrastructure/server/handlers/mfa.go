@@ -9,6 +9,7 @@ import (
 	accountService "github.com/darksuei/suei-intelligence/internal/application/account"
 	"github.com/darksuei/suei-intelligence/internal/application/mfa"
 	"github.com/darksuei/suei-intelligence/internal/config"
+	"github.com/darksuei/suei-intelligence/internal/infrastructure/server/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/kelseyhightower/envconfig"
 )
@@ -22,7 +23,8 @@ func RetrieveTotpURI(c *gin.Context) {
 
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"error": "Invalid request: Missing required fields.",
+			"message": "Validation failed.",
+			"errors": utils.FormatValidationErrors(err),
 		})
 		return
 	}
@@ -77,7 +79,8 @@ func ConfirmMFA(c *gin.Context) {
 
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"error": "Invalid request: Missing required fields.",
+			"message": "Validation failed.",
+			"errors": utils.FormatValidationErrors(err),
 		})
 		return
 	}

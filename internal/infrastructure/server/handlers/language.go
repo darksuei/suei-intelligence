@@ -10,6 +10,7 @@ import (
 
 	"github.com/darksuei/suei-intelligence/internal/application/metadata"
 	"github.com/darksuei/suei-intelligence/internal/config"
+	"github.com/darksuei/suei-intelligence/internal/infrastructure/server/utils"
 )
 
 var Languages = []map[string]string{
@@ -33,7 +34,8 @@ func SetLanguagePreference(c *gin.Context) {
 
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"error": "Invalid request: code is required",
+			"message": "Validation failed.",
+			"errors": utils.FormatValidationErrors(err),
 		})
 		return
 	}

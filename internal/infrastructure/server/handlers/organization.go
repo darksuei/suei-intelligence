@@ -9,6 +9,7 @@ import (
 
 	organizationService "github.com/darksuei/suei-intelligence/internal/application/organization"
 	"github.com/darksuei/suei-intelligence/internal/config"
+	"github.com/darksuei/suei-intelligence/internal/infrastructure/server/utils"
 )
 
 func NewOrganization(c *gin.Context) {
@@ -20,7 +21,8 @@ func NewOrganization(c *gin.Context) {
 
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"error": "Invalid request: Missing required fields.",
+			"message": "Validation failed.",
+			"errors": utils.FormatValidationErrors(err),
 		})
 		return
 	}
@@ -89,7 +91,8 @@ func UpdateOrganization (c *gin.Context) {
 
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"error": "Invalid request: Missing required fields.",
+			"message": "Validation failed.",
+			"errors": utils.FormatValidationErrors(err),
 		})
 		return
 	}
