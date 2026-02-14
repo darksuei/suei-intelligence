@@ -91,3 +91,34 @@ func VerifyPassword(hashedPassword string, password string) error {
 		[]byte(password),
 	)
 }
+
+func GetSecurityLevel(account Account) SecurityLevel {
+	score := 0
+
+	if account.MFAEnabled {
+		score += 3
+	}
+
+	if account.PasswordEnc != "" {
+		score++
+	}
+
+	if account.Role == SuperAdmin || account.Role == Admin {
+		score++
+	}
+
+	if len(account.InternalRoles) > 0 {
+		score++
+	}
+
+	switch {
+	case score >= 6:
+		return SecurityExcellent
+	case score >= 4:
+		return SecurityStrong
+	case score >= 2:
+		return SecurityFair
+	default:
+		return SecurityWeak
+	}
+}

@@ -135,6 +135,7 @@ func RetrieveAccountByEmail(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "success",
 		"account": accountDomain.ToAccountDTO(_account),
+		"security_level": accountDomain.GetSecurityLevel(*_account),
 	})
 }
 
@@ -177,5 +178,6 @@ func UpdateAccount(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "success",
 		"account": _account,
+		"security_level": accountDomain.GetSecurityLevel(*_account),
 	})
 }
