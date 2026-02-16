@@ -22,6 +22,9 @@ func InitializeRouter() *gin.Engine {
 	// Health
 	router.GET("/health", handlers.Health)
 
+	// Config
+	router.GET("/config", handlers.RetrieveConfig)
+
 	// Language Settings
 	router.GET("/supported-languages", handlers.SupportedLanguages)
 	router.PUT("/set-language", handlers.SetLanguagePreference)

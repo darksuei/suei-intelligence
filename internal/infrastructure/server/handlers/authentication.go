@@ -35,6 +35,11 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	var commonCfg config.CommonConfig
+	if err := envconfig.Process("", &commonCfg); err != nil {
+		log.Fatalf("Failed to load common config: %v", err)
+	}
+
 	var databaseCfg config.DatabaseConfig
 	if err := envconfig.Process("", &databaseCfg); err != nil {
 		log.Fatalf("Failed to load database config: %v", err)
@@ -49,9 +54,29 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	challengeID := uuid.New().String()
+	if _account.MFAEnabled {
+		challengeID := uuid.New().String()
 
-	err = cache.GetCache().Set(fmt.Sprintf("challenge-id-%s", challengeID), req.Email, time.Hour)
+		challengeKey := fmt.Sprintf("challenge-id-%s", challengeID)
+
+		err = cache.GetCache().Set(challengeKey, req.Email, time.Hour)
+	
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+	
+		c.JSON(http.StatusOK, gin.H{
+			"message": "success",
+			"mfa_required": _account.MFAEnabled,
+			"challenge_id": challengeID,
+		})
+		return
+	}
+
+	auth, err := authentication.Login(req.Email, req.Password, &commonCfg, &databaseCfg)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -62,8 +87,8 @@ func Login(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "success",
-		"mfa_required": true,
-		"challenge_id": challengeID,
+		"access_token": auth.AccessToken,
+		"refresh_token": auth.RefreshToken,
 	})
 	return
 }
