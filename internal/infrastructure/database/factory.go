@@ -48,67 +48,36 @@ func GetDB(config *config.DatabaseConfig) *gorm.DB {
 	}
 }
 
-func NewMetadataRepository(config *config.DatabaseConfig) metadata.MetadataRepository {
-	db := GetDB(config)
-
-	switch config.DatabaseType {
+func newRepository[T any](
+    config *config.DatabaseConfig,
+    pgFactory func(*gorm.DB) T,
+    sqliteFactory func(*gorm.DB) T,
+) T {
+    db := GetDB(config)
+    switch config.DatabaseType {
 		case databaseDomain.DatabaseTypePostgres:
-			return postgresRepository.NewMetadataRepository(db)
-		case databaseDomain.DatabaseTypeSqlite:
-			return sqliteRepository.NewMetadataRepository(db)
+			return pgFactory(db)
 		default:
-			return sqliteRepository.NewMetadataRepository(db) // Treat SQLite as Default
-	}
+			return sqliteFactory(db)
+    }
+}
+
+func NewMetadataRepository(config *config.DatabaseConfig) metadata.MetadataRepository {
+    return newRepository(config, postgresRepository.NewMetadataRepository, sqliteRepository.NewMetadataRepository)
 }
 
 func NewOrganizationRepository(config *config.DatabaseConfig) organization.OrganizationRepository {
-	db := GetDB(config)
-
-	switch config.DatabaseType {
-		case databaseDomain.DatabaseTypePostgres:
-			return postgresRepository.NewOrganizationRepository(db)
-		case databaseDomain.DatabaseTypeSqlite:
-			return sqliteRepository.NewOrganizationRepository(db)
-		default:
-			return sqliteRepository.NewOrganizationRepository(db) // Treat SQLite as Default
-	}
+	return newRepository(config, postgresRepository.NewOrganizationRepository, sqliteRepository.NewOrganizationRepository)
 }
 
 func NewAccountRepository(config *config.DatabaseConfig) account.AccountRepository {
-	db := GetDB(config)
-
-	switch config.DatabaseType {
-		case databaseDomain.DatabaseTypePostgres:
-			return postgresRepository.NewAccountRepository(db)
-		case databaseDomain.DatabaseTypeSqlite:
-			return sqliteRepository.NewAccountRepository(db)
-		default:
-			return sqliteRepository.NewAccountRepository(db) // Treat SQLite as Default
-	}
+	return newRepository(config, postgresRepository.NewAccountRepository, sqliteRepository.NewAccountRepository)
 }
 
 func NewProjectRepository(config *config.DatabaseConfig) project.ProjectRepository {
-	db := GetDB(config)
-
-	switch config.DatabaseType {
-		case databaseDomain.DatabaseTypePostgres:
-			return postgresRepository.NewProjectRepository(db)
-		case databaseDomain.DatabaseTypeSqlite:
-			return sqliteRepository.NewProjectRepository(db)
-		default:
-			return sqliteRepository.NewProjectRepository(db) // Treat SQLite as Default
-	}
+	return newRepository(config, postgresRepository.NewProjectRepository, sqliteRepository.NewProjectRepository)
 }
 
 func NewDatasourceRepository(config *config.DatabaseConfig) datasource.DatasourceRepository {
-	db := GetDB(config)
-
-	switch config.DatabaseType {
-		case databaseDomain.DatabaseTypePostgres:
-			return postgresRepository.NewDatasourceRepository(db)
-		case databaseDomain.DatabaseTypeSqlite:
-			return sqliteRepository.NewDatasourceRepository(db)
-		default:
-			return sqliteRepository.NewDatasourceRepository(db) // Treat SQLite as Default
-	}
+	return newRepository(config, postgresRepository.NewDatasourceRepository, sqliteRepository.NewDatasourceRepository)
 }
