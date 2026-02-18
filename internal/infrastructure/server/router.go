@@ -65,7 +65,8 @@ func InitializeRouter() *gin.Engine {
 	router.DELETE("/project/:key/datasources/:id", middleware.AuthMiddleware(), handlers.DeleteDatasource)
 
 	// Datasource - schemas
-	router.GET("/project/:key/datasources/:id/source-schema-def", middleware.AuthMiddleware(), handlers.RetrieveSourceSchema)
+	router.GET("/internal-schema-definition", middleware.AuthMiddleware(), handlers.RetrieveInternalSchema)
+	router.GET("/project/:key/datasources/:id/source-schema-definition", middleware.AuthMiddleware(), handlers.RetrieveSourceSchema)
 
 	// Metrics
 	handlers.MetricsHandler(router)
