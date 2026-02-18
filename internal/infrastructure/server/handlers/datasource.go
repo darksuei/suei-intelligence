@@ -310,3 +310,96 @@ func RetrieveSourceSchema(c *gin.Context) {
 	})
 	return
 }
+
+func RetrieveDatasourceSchemaMapping(c *gin.Context) {
+	projectKey := c.Param("key") // assumes route is like /projects/:key
+	if projectKey == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Project key is required",
+		})
+		return
+	}
+
+	datasourceIDString := c.Param("id")
+	if datasourceIDString == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Project id is required",
+		})
+		return
+	}
+
+	datasourceID, err := strconv.ParseUint(datasourceIDString, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid datasource id",
+		})
+		return
+	}
+
+	// Retrieve datasource
+	_datasource, err := datasourceService.RetrieveDatasource(uint(datasourceID), projectKey, config.Database())
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid datasource id",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "success",
+		"schemaMapping": _datasource.SchemaMapping,
+	})
+	return
+}
+
+func UpdateDatasourceSchemaMapping(c *gin.Context) {
+	var req struct {
+		SchemaMapping map[string]interface{} `json:"schemaMapping" binding:"required"`
+	}
+
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"message": "Validation failed.",
+			"errors": utils.FormatValidationErrors(err),
+		})
+		return
+	}
+
+	projectKey := c.Param("key") // assumes route is like /projects/:key
+	if projectKey == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Project key is required",
+		})
+		return
+	}
+
+	datasourceIDString := c.Param("id")
+	if datasourceIDString == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Project id is required",
+		})
+		return
+	}
+
+	datasourceID, err := strconv.ParseUint(datasourceIDString, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid datasource id",
+		})
+		return
+	}
+
+	_datasource, err := datasourceService.UpdateSchemaMapping(projectKey, uint(datasourceID), req.SchemaMapping, config.Database())
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "success",
+		"schemaMapping": _datasource.SchemaMapping,
+	})
+	return
+}

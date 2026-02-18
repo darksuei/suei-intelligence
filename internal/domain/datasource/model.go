@@ -11,4 +11,5 @@ type Datasource struct {
 	SourceID      string `gorm:"not null"`
 	ProjectID		uint   `gorm:"not null;index"` // <- foreign key to Project
 	CreatedBy       map[string]string 		 `gorm:"type:jsonb;serializer:json;default:'{}'"`
+	SchemaMapping       map[string]interface{} 		 `gorm:"type:jsonb;serializer:json;default:'{}'"`
 }

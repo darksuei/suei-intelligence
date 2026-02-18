@@ -67,6 +67,8 @@ func InitializeRouter() *gin.Engine {
 	// Datasource - schemas
 	router.GET("/internal-schema-definition", middleware.AuthMiddleware(), handlers.RetrieveInternalSchema)
 	router.GET("/project/:key/datasources/:id/source-schema-definition", middleware.AuthMiddleware(), handlers.RetrieveSourceSchema)
+	router.GET("/project/:key/datasources/:id/schema-mapping", middleware.AuthMiddleware(), handlers.RetrieveDatasourceSchemaMapping)
+	router.PUT("/project/:key/datasources/:id/schema-mapping", middleware.AuthMiddleware(), handlers.UpdateDatasourceSchemaMapping)
 
 	// Metrics
 	handlers.MetricsHandler(router)

@@ -87,3 +87,28 @@ func HardDeleteDatasource(datasourceID uint, key string, cfg *config.DatabaseCon
 
 	return _datasourceRepository.HardDelete(datasourceID, _project.ID)
 }
+
+func UpdateSchemaMapping(key string, datasourceID uint, schemaMapping map[string]interface{}, cfg *config.DatabaseConfig) (*datasource.Datasource, error) {
+	_datasourceRepository := database.NewDatasourceRepository(cfg)
+
+	_project, err := project.RetrieveProject(key, cfg)
+
+	if err != nil {
+		return nil, errors.New("Invalid project key")
+	}
+
+	_datasource, err := _datasourceRepository.FindOne(datasourceID, _project.ID)
+
+	if err != nil {
+		return nil, errors.New("Invalid datasource")
+	}
+
+	_datasource.SchemaMapping = schemaMapping
+
+	// Save updated datasource
+	if err := _datasourceRepository.Update(_datasource); err != nil {
+		return nil, err
+	}
+
+	return _datasource, nil
+}

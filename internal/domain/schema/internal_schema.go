@@ -1,4 +1,4 @@
-package etl
+package schema
 
 var InternalSchema = []map[string]interface{}{
 
